@@ -8,9 +8,9 @@ git clone https://github.com/laichaoyi/ComfyUI-Login.git
 cd ComfyUI-Login
 
 pip install -r requirements.txt
-'''
+```
 
-**How to use ?**
+## 🛠 Usage
 
 When ComfyUI starts up, the login panel will automatically appear. You can create an account or log in freely, and you can also change your password if needed.
 
