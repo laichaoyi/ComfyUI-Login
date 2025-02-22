@@ -2,11 +2,11 @@
 
 Open Terminal/cmd in ComfyUI/Custom_nodes
 
-git clone https://github.com/laichaoyi/ComfyUI-Login.git
+'''git clone https://github.com/laichaoyi/ComfyUI-Login.git
 
 cd ComfyUI-Login
 
-pip install -r requirements.txt
+pip install -r requirements.txt'''
 
 **How to use ?**
 
