@@ -1,6 +1,6 @@
 **How to install ?** 
 
-Open Terminal/cmd in ComfyUI/Custom_nodes
+Open Terminal/cmd in ComfyUI/Custom_nodes \n
 git clone https://github.com/laichaoyi/ComfyUI-Login.git
 cd ComfyUI-Login
 pip install -r requirements.txt
