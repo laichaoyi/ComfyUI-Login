@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ComfyUI Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="/old_css/style.css" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let images = ["/old_css/images/image_1.png", "/old_css/images/image_2.png", "/old_css/images/image_3.png",  "/old_css/images/image_4.png", "/old_css/images/image_5.png"];
+            let randomImage = images[Math.floor(Math.random() * images.length)];
+            document.body.style.backgroundImage = `url('${randomImage}')`;
+        });
+
+    </script>
+    <style>
+        body {
+            text-align: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center center;
+        }
+        .hidden { display: none; }
+        .message {
+            margin: 10px auto;
+            padding: 10px;
+            max-width: 300px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .error { background-color: #ffcccc; color: #900; }
+        .success { background-color: #ccffcc; color: #090; }
+        a { color: orange; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="session">
+        <!-- FORM ĐĂNG NHẬP -->
+        <form id="form_login" class="log-in" autocomplete="off">
+            <h4>ComfyUI Login</h4>
+            <div id="feedback" class="message hidden"></div>
+    
+            <div class="floating-label">
+                <input type="text" id="login_username" name="username" placeholder="Enter username" required>
+                <label for="login_username">Username:</label>
+            </div>
+            <div class="floating-label">
+                <input type="password" id="login_password" name="password" placeholder="Enter password" required>
+                <label for="login_password">Password:</label>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit">Log in</button>
+                <button type="button" id="show_register" class="hidden">Register</button>
+            </div>
+            <br><br>
+            <p id="changepw_link">Forgot your password? <a id="show_change_password">Change it now</a></p>
+
+
+        </form>
+        <!-- FORM ĐỔI MẬT KHẨU (ẨN MẶC ĐỊNH) -->
+        <form id="form_change_password" class="hidden" autocomplete="off">
+            <h4>Change Password</h4>
+            <div id="change_password_feedback" class="message hidden"></div>
+
+            <div class="floating-label">
+                <input type="text" id="change_username" name="username" placeholder="Enter your username" required>
+                <label for="change_username">Username:</label>
+            </div>
+            <div class="floating-label">
+                <input type="password" id="old_password" name="old_password" placeholder="Enter current password" required>
+                <label for="old_password">Old Password:</label>
+            </div>
+            <div class="floating-label">
+                <input type="password" id="new_password" name="new_password" placeholder="Enter new password" required>
+                <label for="new_password">New Password:</label>
+            </div>
+            <div class="floating-label">
+                <input type="password" id="confirm_new_password" placeholder="Confirm new password" required>
+                <label for="confirm_new_password">Confirm New Password:</label>
+            </div>
+            <div class="button-group">
+                <button type="submit" id="change_password_btn">Change Password</button>
+            </div>
+            <br>
+            <p>Back to <a id="show_login_from_change">Log in</a></p>
+        </form>
+
+        <!-- FORM ĐĂNG KÝ (ẨN MẶC ĐỊNH) -->
+        <form id="form_register" class="hidden" autocomplete="off">
+            <h4>Register</h4>
+            <div id="register_feedback" class="message hidden"></div>
+    
+            <div class="floating-label">
+                <input type="text" id="register_username" name="username" placeholder="Choose a username" required>
+                <label for="register_username">Username:</label>
+            </div>
+            <div class="floating-label">
+                <input type="password" id="register_password" name="password" placeholder="Choose a password" required>
+                <label for="register_password">Password:</label>
+            </div>
+            <div class="floating-label">
+                <input type="password" id="confirm_password" placeholder="Re-type password" required>
+                <label for="confirm_password">Confirm Password:</label>
+            </div>
+            <div class="button-group">
+                <button type="submit" id="register_btn">Register</button>
+            </div>
+            <br>
+            <p>Already have an account? <a id="show_login">Log in</a></p>
+        </form>
+    </div>
+
+    <script>
+        // Chuyển giữa form đăng nhập và đăng ký
+        document.getElementById("show_register").addEventListener("click", function() {
+            document.getElementById("form_login").classList.add("hidden");
+            document.getElementById("form_register").classList.remove("hidden");
+        });
+
+        document.getElementById("show_login").addEventListener("click", function() {
+            document.getElementById("form_register").classList.add("hidden");
+            document.getElementById("form_login").classList.remove("hidden");
+        });
+        document.getElementById("show_login_from_change").addEventListener("click", function() {
+            document.getElementById("form_change_password").classList.add("hidden");
+            document.getElementById("form_login").classList.remove("hidden");
+        });
+
+        // Xử lý đổi mật khẩu
+        document.getElementById("form_change_password").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            let username = document.getElementById("change_username").value;
+            let oldPassword = document.getElementById("old_password").value;
+            let newPassword = document.getElementById("new_password").value;
+            let confirmNewPassword = document.getElementById("confirm_new_password").value;
+
+            if (newPassword !== confirmNewPassword) {
+                showMessage("change_password_feedback", "New passwords do not match!", false);
+                return;
+            }
+
+            let response = await fetch("/change-password", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, old_password: oldPassword, new_password: newPassword, confirm_password: confirmNewPassword })
+            });
+
+            let result = await response.json();
+            if (response.ok) {
+                showMessage("change_password_feedback", result.message, true);
+            } else {
+                showMessage("change_password_feedback", result.error, false);
+            }
+        });
+
+        // XỬ LÝ HIỂN THỊ THÔNG BÁO
+        function showMessage(elementId, message, isSuccess) {
+            let messageElement = document.getElementById(elementId);
+            messageElement.textContent = message;
+            messageElement.classList.remove("hidden", "error", "success");
+            messageElement.classList.add(isSuccess ? "success" : "error");
+
+            // Ẩn thông báo sau 2 giây
+            setTimeout(() => {
+                messageElement.classList.add("hidden");
+            }, 2000);
+        }
+
+        // XỬ LÝ ĐĂNG NHẬP
+        document.getElementById("form_login").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            let username = document.getElementById("login_username").value;
+            let password = document.getElementById("login_password").value;
+
+            let response = await fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
+
+            let result = await response.json();
+            if (response.ok) {
+                showMessage("feedback", "Login successful! Redirecting...", true);
+                setTimeout(() => { window.location.href = result.redirect; }, 1500);
+            } else {
+                showMessage("feedback", result.error || "Login failed!", false);
+            }
+        });
+
+        // XỬ LÝ ĐĂNG KÝ
+        document.getElementById("form_register").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            let username = document.getElementById("register_username").value;
+            let password = document.getElementById("register_password").value;
+            let confirmPassword = document.getElementById("confirm_password").value;
+
+            if (password !== confirmPassword) {
+                showMessage("register_feedback", "Passwords do not match!", false);
+                return;
+            }
+
+            let response = await fetch("/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
+
+            let result = await response.json();
+            if (response.ok) {
+                showMessage("register_feedback", result.message || "Registration successful!", true);
+                setTimeout(() => {
+                    document.getElementById("form_register").classList.add("hidden");
+                    document.getElementById("form_login").classList.remove("hidden");
+                }, 2000);
+            } else {
+                showMessage("register_feedback", result.error || "Registration failed!", false);
+            }
+        });
+
+        console.log("DEBUG: Checking allowRegister value from backend...");
+        let allowRegister = {{ allow_register|tojson }};
+        console.log("DEBUG: allowRegister =", allowRegister);
+
+        // Kiểm tra nếu ALLOW_REGISTER = true, thì hiển thị nút Register
+        if (allowRegister) {
+            document.getElementById("show_register").classList.remove("hidden");
+        } else {
+            document.getElementById("show_register").classList.add("hidden");
+        }
+
+        // Xử lý khi bấm nút Register
+        document.getElementById("show_register").addEventListener("click", function() {
+            document.getElementById("form_login").classList.add("hidden");
+            document.getElementById("form_register").classList.remove("hidden");
+        });
+
+        let registerButton = document.getElementById("show_register");
+
+    if (!registerButton) {
+        console.error("ERROR: show_register button NOT FOUND!");
+    } else {
+        console.log("DEBUG: show_register button found.");
+
+        if (allowRegister) {
+            console.log("DEBUG: Showing register button...");
+            registerButton.classList.remove("hidden");
+        } else {
+            console.log("DEBUG: Hiding register button...");
+            registerButton.classList.add("hidden");
+        }
+    }
+
+
+
+        // Khi bấm vào "Change it now", chuyển từ form đăng nhập sang form đổi mật khẩu
+        document.getElementById("show_change_password").addEventListener("click", function() {
+            document.getElementById("form_login").classList.add("hidden");
+            document.getElementById("form_change_password").classList.remove("hidden");
+        });
+
+        // Khi bấm "Back to Log in", quay về form đăng nhập
+        document.getElementById("show_login_from_change").addEventListener("click", function() {
+            document.getElementById("form_change_password").classList.add("hidden");
+            document.getElementById("form_login").classList.remove("hidden");
+        });
+
+    </script>
+
+</body>
+</html>
